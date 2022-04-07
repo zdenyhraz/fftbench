@@ -55,6 +55,11 @@ add_subdirectory(libs/fmt)
 include_directories(libs/fmt/include)
 target_link_libraries(fftbench PRIVATE fmt::fmt-header-only)
 
+# benchmark
+set(BENCHMARK_ENABLE_TESTING OFF)
+add_subdirectory(libs/benchmark)
+target_link_libraries(fftbench PRIVATE benchmark::benchmark)
+
 # opencv
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})

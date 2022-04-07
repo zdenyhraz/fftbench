@@ -4,3 +4,4 @@
 #include <exception>
 
 #include <fmt/format.h>
+#include <benchmark/benchmark.h>

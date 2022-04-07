@@ -1,7 +1,25 @@
+float ShitsAndGiggles()
+{
+  return std::asin(static_cast<float>(std::rand()));
+}
+
+static void BenchmarkShitsAndGiggles(benchmark::State& state)
+{
+  for (auto _ : state)
+  {
+    const auto result = ShitsAndGiggles();
+    benchmark::DoNotOptimize(result);
+  }
+}
+
 int main(int argc, char** argv)
 try
 {
-  fmt::print("hi mom\n");
+  benchmark::RegisterBenchmark("ShitsAndGiggles()", BenchmarkShitsAndGiggles);
+
+  benchmark::Initialize(&argc, argv);
+  benchmark::RunSpecifiedBenchmarks();
+  benchmark::Shutdown();
   return EXIT_SUCCESS;
 }
 catch (const std::exception& e)
