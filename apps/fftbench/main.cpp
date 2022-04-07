@@ -1,13 +1,27 @@
-float ShitsAndGiggles()
+float Sine()
 {
   return std::asin(static_cast<float>(std::rand()));
 }
 
-static void BenchmarkShitsAndGiggles(benchmark::State& state)
+float Power(int power)
+{
+  return std::pow(static_cast<float>(std::rand()), power);
+}
+
+static void BenchmarkPower(benchmark::State& state, int power)
 {
   for (auto _ : state)
   {
-    const auto result = ShitsAndGiggles();
+    const auto result = Power(power);
+    benchmark::DoNotOptimize(result);
+  }
+}
+
+static void BenchmarkSine(benchmark::State& state)
+{
+  for (auto _ : state)
+  {
+    const auto result = Sine();
     benchmark::DoNotOptimize(result);
   }
 }
@@ -15,7 +29,9 @@ static void BenchmarkShitsAndGiggles(benchmark::State& state)
 int main(int argc, char** argv)
 try
 {
-  benchmark::RegisterBenchmark("ShitsAndGiggles()", BenchmarkShitsAndGiggles);
+  benchmark::RegisterBenchmark("Sine", BenchmarkSine);
+  for (int power : {0, 1, 2, 3, 4, 5, 6})
+    benchmark::RegisterBenchmark(fmt::format("Power{}", power).c_str(), BenchmarkPower, power);
 
   benchmark::Initialize(&argc, argv);
   benchmark::RunSpecifiedBenchmarks();
