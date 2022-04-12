@@ -8,6 +8,7 @@
 #include <opencv2/opencv.hpp>
 #include <fftw3.h>
 #include <pocketfft/pocketfft_hdronly.h>
+#include <pffft.hpp>
 
 using i8 = int8_t;
 using u8 = uint8_t;

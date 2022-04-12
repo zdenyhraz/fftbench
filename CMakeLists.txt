@@ -56,9 +56,12 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 target_link_libraries(fftbench PRIVATE ${OpenCV_LIBS})
 
-# fftwf
+# fftw
 find_package(FFTW3f REQUIRED)
 target_link_libraries(fftbench PRIVATE fftw3f)
+
+# pffft
+target_link_libraries(fftbench PRIVATE libpffft.a)
 
 # custom
 include_directories(src)

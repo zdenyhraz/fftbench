@@ -1,5 +1,3 @@
-#include "fftw_vector.hpp"
-
 std::vector<f32> GenerateRandomVector(usize size)
 {
   std::vector<f32> vec(size);
@@ -27,15 +25,18 @@ static void FFTWEstimateBenchmark(benchmark::State& state, std::vector<f32> inpu
   // Second, the inverse transform (complex to real) has the side-effect of overwriting its input array, by default. Neither of these inconveniences
   // should pose a serious problem for users, but it is important to be aware of them.
 
-  fftw::vector<f32> inputAligned(input.size());
-  fftw::vector<fftwf_complex> outputAligned(input.size() / 2 + 1);
-  std::memcpy(inputAligned.data(), input.data(), input.size());
-  fftwf_plan plan = fftwf_plan_dft_r2c_1d(input.size(), inputAligned.data(), outputAligned.data(), FFTW_ESTIMATE);
+  f32* inputAligned = fftwf_alloc_real(input.size());
+  fftwf_complex* outputAligned = fftwf_alloc_complex(input.size() / 2 + 1);
+  std::memcpy(inputAligned, input.data(), input.size());
+  fftwf_plan plan = fftwf_plan_dft_r2c_1d(input.size(), inputAligned, outputAligned, FFTW_ESTIMATE);
+
   for (auto _ : state)
   {
     fftwf_execute(plan);
   }
   fftwf_destroy_plan(plan);
+  fftwf_free(inputAligned);
+  fftwf_free(outputAligned);
   fftwf_cleanup();
 }
 
@@ -50,15 +51,18 @@ static void FFTWMeasureBenchmark(benchmark::State& state, std::vector<f32> input
   // Second, the inverse transform (complex to real) has the side-effect of overwriting its input array, by default. Neither of these inconveniences
   // should pose a serious problem for users, but it is important to be aware of them.
 
-  fftw::vector<f32> inputAligned(input.size());
-  fftw::vector<fftwf_complex> outputAligned(input.size() / 2 + 1);
-  std::memcpy(inputAligned.data(), input.data(), input.size());
-  fftwf_plan plan = fftwf_plan_dft_r2c_1d(input.size(), inputAligned.data(), outputAligned.data(), FFTW_MEASURE);
+  f32* inputAligned = fftwf_alloc_real(input.size());
+  fftwf_complex* outputAligned = fftwf_alloc_complex(input.size() / 2 + 1);
+  std::memcpy(inputAligned, input.data(), input.size());
+  fftwf_plan plan = fftwf_plan_dft_r2c_1d(input.size(), inputAligned, outputAligned, FFTW_MEASURE);
+
   for (auto _ : state)
   {
     fftwf_execute(plan);
   }
   fftwf_destroy_plan(plan);
+  fftwf_free(inputAligned);
+  fftwf_free(outputAligned);
   fftwf_cleanup();
 }
 
@@ -75,6 +79,23 @@ static void PocketFFTBenchmark(benchmark::State& state, std::vector<f32> input)
   for (auto _ : state)
   {
     pocketfft::r2c(shapeInput, strideInput, strideOutput, axis, pocketfft::FORWARD, input.data(), output.data(), factor, nthreads);
+  }
+}
+
+static void PFFFTBenchmark(benchmark::State& state, std::vector<f32> input)
+{
+  pffft::Fft<f32> fft(input.size());
+
+  if (!fft.isValid())
+    throw std::invalid_argument(fmt::format("Error: transformation length {} is not decomposable into small prime factors. Next valid transform size is: {}; next power of 2 is: {}", input.size(),
+        pffft::Fft<f32>::nearestTransformSize(input.size()), pffft::Fft<f32>::nextPowerOfTwo(input.size())));
+
+  pffft::AlignedVector<f32> inputAligned = fft.valueVector();
+  pffft::AlignedVector<std::complex<f32>> outputAligned = fft.spectrumVector();
+
+  for (auto _ : state)
+  {
+    fft.forward(inputAligned, outputAligned);
   }
 }
 
@@ -97,6 +118,7 @@ try
     benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW est r2c", size).c_str(), FFTWEstimateBenchmark, input)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW mes r2c", size).c_str(), FFTWMeasureBenchmark, input)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | PocketFFT", size).c_str(), PocketFFTBenchmark, input)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | PFFFT", size).c_str(), PFFFTBenchmark, input)->Unit(timeunit);
   }
 
   benchmark::Initialize(&argc, argv);
