@@ -4,3 +4,6 @@
 [submodule "libs/benchmark"]
 	path = libs/benchmark
 	url = https://github.com/google/benchmark.git
+[submodule "libs/pocketfft"]
+	path = libs/pocketfft
+	url = https://gitlab.mpcdf.mpg.de/mtr/pocketfft.git
