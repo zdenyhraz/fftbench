@@ -62,6 +62,7 @@ target_link_libraries(fftbench PRIVATE fftw3f)
 
 # custom
 include_directories(src)
+include_directories(libs)
 
 # sources
 file(GLOB_RECURSE SRC CONFIGURE_DEPENDS src/*.hpp src/*.cpp)

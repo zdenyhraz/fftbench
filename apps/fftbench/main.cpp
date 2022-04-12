@@ -9,10 +9,10 @@ std::vector<f32> GenerateRandomVector(usize size)
 
 static void OpenCVBenchmark(benchmark::State& state, std::vector<f32> input)
 {
-  std::vector<f32> output(input.size() / 2 + 1);
+  std::vector<f32> output(input.size());
   for (auto _ : state)
   {
-    cv::dft(input, output, cv::DFT_ROWS);
+    cv::dft(input, output);
   }
 }
 
@@ -62,6 +62,22 @@ static void FFTWMeasureBenchmark(benchmark::State& state, std::vector<f32> input
   fftwf_cleanup();
 }
 
+static void PocketFFTBenchmark(benchmark::State& state, std::vector<f32> input)
+{
+  const pocketfft::shape_t shapeInput(input.size());
+  const pocketfft::stride_t strideInput(sizeof(f32));
+  const pocketfft::stride_t strideOutput(sizeof(std::complex<f32>));
+  const size_t axis = 0;
+  const size_t nthreads = 1;
+  const f32 factor = 1;
+  std::vector<std::complex<f32>> output(input.size() / 2 + 1);
+
+  for (auto _ : state)
+  {
+    pocketfft::r2c(shapeInput, strideInput, strideOutput, axis, pocketfft::FORWARD, input.data(), output.data(), factor, nthreads);
+  }
+}
+
 // --benchmark_out_format={json|console|csv}
 // --benchmark_out=<filename>
 int main(int argc, char** argv)
@@ -80,6 +96,7 @@ try
     benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV-IPP ccs", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW est r2c", size).c_str(), FFTWEstimateBenchmark, input)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW mes r2c", size).c_str(), FFTWMeasureBenchmark, input)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | PocketFFT", size).c_str(), PocketFFTBenchmark, input)->Unit(timeunit);
   }
 
   benchmark::Initialize(&argc, argv);
