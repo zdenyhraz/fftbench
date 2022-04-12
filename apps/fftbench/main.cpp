@@ -1,3 +1,12 @@
+// from https://www.fftw.org/fftw3_doc/One_002dDimensional-DFTs-of-Real-Data.html
+// In many practical applications, the input data in[i] are purely real numbers, in which case the DFT output satisfies the “Hermitian” redundancy:
+// out[i] is the conjugate of out[n-i]. It is possible to take advantage of these circumstances in order to achieve roughly a factor of two
+// improvement in both speed and memory usage. In exchange for these speed and space advantages, the user sacrifices some of the simplicity of
+// FFTW’s complex transforms. First of all, the input and output arrays are of different sizes and types: the input is n real numbers, while the
+// output is n/2+1 complex numbers (the non-redundant outputs); this also requires slight “padding” of the input array for in-place transforms.
+// Second, the inverse transform (complex to real) has the side-effect of overwriting its input array, by default. Neither of these inconveniences
+// should pose a serious problem for users, but it is important to be aware of them.
+
 std::vector<f32> GenerateRandomVector(usize size)
 {
   std::vector<f32> vec(size);
@@ -16,15 +25,6 @@ static void OpenCVBenchmark(benchmark::State& state, std::vector<f32> input)
 
 static void FFTWEstimateBenchmark(benchmark::State& state, std::vector<f32> input)
 {
-  // from https://www.fftw.org/fftw3_doc/One_002dDimensional-DFTs-of-Real-Data.html
-  // In many practical applications, the input data in[i] are purely real numbers, in which case the DFT output satisfies the “Hermitian” redundancy:
-  // out[i] is the conjugate of out[n-i]. It is possible to take advantage of these circumstances in order to achieve roughly a factor of two
-  // improvement in both speed and memory usage. In exchange for these speed and space advantages, the user sacrifices some of the simplicity of
-  // FFTW’s complex transforms. First of all, the input and output arrays are of different sizes and types: the input is n real numbers, while the
-  // output is n/2+1 complex numbers (the non-redundant outputs); this also requires slight “padding” of the input array for in-place transforms.
-  // Second, the inverse transform (complex to real) has the side-effect of overwriting its input array, by default. Neither of these inconveniences
-  // should pose a serious problem for users, but it is important to be aware of them.
-
   f32* inputAligned = fftwf_alloc_real(input.size());
   fftwf_complex* outputAligned = fftwf_alloc_complex(input.size() / 2 + 1);
   std::memcpy(inputAligned, input.data(), input.size());
@@ -42,15 +42,6 @@ static void FFTWEstimateBenchmark(benchmark::State& state, std::vector<f32> inpu
 
 static void FFTWMeasureBenchmark(benchmark::State& state, std::vector<f32> input)
 {
-  // from https://www.fftw.org/fftw3_doc/One_002dDimensional-DFTs-of-Real-Data.html
-  // In many practical applications, the input data in[i] are purely real numbers, in which case the DFT output satisfies the “Hermitian” redundancy:
-  // out[i] is the conjugate of out[n-i]. It is possible to take advantage of these circumstances in order to achieve roughly a factor of two
-  // improvement in both speed and memory usage. In exchange for these speed and space advantages, the user sacrifices some of the simplicity of
-  // FFTW’s complex transforms. First of all, the input and output arrays are of different sizes and types: the input is n real numbers, while the
-  // output is n/2+1 complex numbers (the non-redundant outputs); this also requires slight “padding” of the input array for in-place transforms.
-  // Second, the inverse transform (complex to real) has the side-effect of overwriting its input array, by default. Neither of these inconveniences
-  // should pose a serious problem for users, but it is important to be aware of them.
-
   f32* inputAligned = fftwf_alloc_real(input.size());
   fftwf_complex* outputAligned = fftwf_alloc_complex(input.size() / 2 + 1);
   std::memcpy(inputAligned, input.data(), input.size());
@@ -92,6 +83,7 @@ static void PFFFTBenchmark(benchmark::State& state, std::vector<f32> input)
 
   pffft::AlignedVector<f32> inputAligned = fft.valueVector();
   pffft::AlignedVector<std::complex<f32>> outputAligned = fft.spectrumVector();
+  std::memcpy(inputAligned.data(), input.data(), input.size());
 
   for (auto _ : state)
   {
