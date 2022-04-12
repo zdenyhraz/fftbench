@@ -11,22 +11,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(ENABLE_PCH ON)
 
 # compiler
-if(MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /favor:INTEL64 /arch:SSE /arch:SSE2 /arch:AVX /arch:AVX2 /openmp")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Wall /WX")
-else()
-  set(CXX_FLAGS "-march=native -fopenmp -Wall -Werror -Wfatal-errors -Wextra -Wpedantic -Wshadow -Wno-unused-parameter -Wno-missing-field-initializers")
-  set(CXX_FLAGS_DEBUG "-g -O0") #-Og
-  set(CXX_FLAGS_RELEASE "-O3")
-
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS}")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_DEBUG}")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_RELEASE}")
-
-  set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -w")
-  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -w")
-  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -w")
-endif()
+set(CXX_FLAGS "-march=native -fopenmp -Wall -Werror -Wfatal-errors -Wextra -Wpedantic -Wshadow -Wno-unused-parameter -Wno-missing-field-initializers")
+set(CXX_FLAGS_DEBUG "-g -O0") #-Og
+set(CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_DEBUG}")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_RELEASE}")
+set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -w")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -w")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -w")
 
 # ignore warnings from libs sources
 file(GLOB_RECURSE SRC_LIBS CONFIGURE_DEPENDS libs/*.h libs/*.hpp libs/*.c libs/*.cpp)
@@ -44,8 +37,6 @@ message(STATUS "CMAKE_C_COMPILER: " ${CMAKE_C_COMPILER_ID} " " ${CMAKE_C_COMPILE
 message(STATUS "CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})
 message(STATUS "CMAKE_CXX_FLAGS_DEBUG: " ${CMAKE_CXX_FLAGS_DEBUG})
 message(STATUS "CMAKE_CXX_FLAGS_RELEASE: " ${CMAKE_CXX_FLAGS_RELEASE})
-message(STATUS "ENABLE_PROFILING: " ${ENABLE_PROFILING})
-message(STATUS "ENABLE_SANITIZER: " ${ENABLE_SANITIZER})
 
 # targets
 add_executable(fftbench)
@@ -65,6 +56,10 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 target_link_libraries(fftbench PRIVATE ${OpenCV_LIBS})
 
+# fftwf
+find_package(FFTW3f REQUIRED)
+target_link_libraries(fftbench PRIVATE fftw3f)
+
 # custom
 include_directories(src)
 
@@ -73,8 +68,8 @@ file(GLOB_RECURSE SRC CONFIGURE_DEPENDS src/*.hpp src/*.cpp)
 target_sources(fftbench PRIVATE ${SRC})
 
 # fftbench app sources
-file(GLOB SRC_SHENANIGANS_APP CONFIGURE_DEPENDS apps/fftbench/*.cpp)
-target_sources(fftbench PRIVATE ${SRC_SHENANIGANS_APP})
+file(GLOB SRC_APP CONFIGURE_DEPENDS apps/fftbench/*.cpp)
+target_sources(fftbench PRIVATE ${SRC_APP})
 
 # precompiled headers
 if (ENABLE_PCH)
