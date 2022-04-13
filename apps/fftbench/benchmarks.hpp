@@ -46,9 +46,9 @@ static void FFTWMeasureBenchmark(benchmark::State& state, std::vector<f32> input
 
 static void PocketFFTBenchmark(benchmark::State& state, std::vector<f32> input)
 {
-  const pocketfft::shape_t shapeInput(input.size());
-  const pocketfft::stride_t strideInput(sizeof(f32));
-  const pocketfft::stride_t strideOutput(sizeof(std::complex<f32>));
+  const pocketfft::shape_t shapeInput{input.size()};
+  const pocketfft::stride_t strideInput{sizeof(f32)};
+  const pocketfft::stride_t strideOutput{sizeof(std::complex<f32>)};
   const size_t axis = 0;
   const size_t nthreads = 1;
   const f32 factor = 1;

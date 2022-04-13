@@ -104,20 +104,16 @@ void CheckEqual(const std::string& name, const std::vector<f32>& fftref, const s
   if (fft.size() <= 34)
     PrintFFT(fft);
   fmt::print("\n");
+  if (not ok)
+    throw std::runtime_error(fmt::format("{} did not pass the tests", name));
 }
 
-void RunTests()
+void RunTests(usize size)
 {
-  const auto input = GenerateRandomVector(32);
-  const auto fftref = FFTWEstimateTest(input);
-  const bool showref = false;
+  std::srand(std::time(nullptr));
 
-  if (showref)
-  {
-    fmt::print("Reference FFT: ");
-    PrintFFT(fftref);
-    fmt::print("\n");
-  }
+  const auto input = GenerateRandomVector(size);
+  const auto fftref = FFTWEstimateTest(input);
 
   if (std::ranges::count_if(fftref, [](const auto& x) { return x != std::complex<f32>{0, 0}; }) == 0)
     throw std::runtime_error("Invalid reference FFT");

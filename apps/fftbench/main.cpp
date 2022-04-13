@@ -7,17 +7,10 @@ int main(int argc, char** argv)
 try
 {
   static constexpr bool tests = true;
-  static constexpr bool testsOnly = true;
-
-  if constexpr (testsOnly)
-  {
-    std::srand(std::time(nullptr));
-    RunTests();
-    return EXIT_SUCCESS;
-  }
+  static constexpr usize testSize = 1024;
 
   if constexpr (tests)
-    RunTests();
+    RunTests(testSize);
 
   RegisterBenchmarks();
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 git clone --recursive https://github.com/marton78/pffft.git
-pffft
+cd pffft
 mkdir build && cd build
 
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
