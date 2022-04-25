@@ -16,25 +16,11 @@ static void OpenCVBenchmark(benchmark::State& state, std::vector<f32> input)
     cv::dft(input, outputf);
 }
 
-static void FFTWEstimateBenchmark(benchmark::State& state, std::vector<f32> input)
+static void FFTWBenchmark(benchmark::State& state, std::vector<f32> input, u32 flags)
 {
   f32* inputAligned = fftwf_alloc_real(input.size());
   fftwf_complex* outputAligned = fftwf_alloc_complex(input.size() / 2 + 1);
-  fftwf_plan plan = fftwf_plan_dft_r2c_1d(input.size(), inputAligned, outputAligned, FFTW_ESTIMATE);
-  std::memcpy(inputAligned, input.data(), input.size() * sizeof(f32));
-  for (auto _ : state)
-    fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
-  fftwf_free(inputAligned);
-  fftwf_free(outputAligned);
-  fftwf_cleanup();
-}
-
-static void FFTWMeasureBenchmark(benchmark::State& state, std::vector<f32> input)
-{
-  f32* inputAligned = fftwf_alloc_real(input.size());
-  fftwf_complex* outputAligned = fftwf_alloc_complex(input.size() / 2 + 1);
-  fftwf_plan plan = fftwf_plan_dft_r2c_1d(input.size(), inputAligned, outputAligned, FFTW_MEASURE);
+  fftwf_plan plan = fftwf_plan_dft_r2c_1d(input.size(), inputAligned, outputAligned, flags);
   std::memcpy(inputAligned, input.data(), input.size() * sizeof(f32));
   for (auto _ : state)
     fftwf_execute(plan);
@@ -80,13 +66,14 @@ void RegisterBenchmarks()
 
   for (const auto exponent : exponents)
   {
-    const auto timeunit = exponent > 18 ? benchmark::kMillisecond : benchmark::kMicrosecond;
+    const auto timeunit = benchmark::kMillisecond;
     const auto size = 1 << exponent;
     const auto input = GenerateRandomVector(size);
 
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV-IPP ccs", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW est r2c", size).c_str(), FFTWEstimateBenchmark, input)->Unit(timeunit);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW mes r2c", size).c_str(), FFTWMeasureBenchmark, input)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW estimate", size).c_str(), FFTWBenchmark, input, FFTW_ESTIMATE)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW measure", size).c_str(), FFTWBenchmark, input, FFTW_MEASURE)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW patient", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV-IPP", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | PocketFFT", size).c_str(), PocketFFTBenchmark, input)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | PFFFT", size).c_str(), PFFFTBenchmark, input)->Unit(timeunit);
   }

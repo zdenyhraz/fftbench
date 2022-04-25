@@ -3,6 +3,7 @@
 
 // --benchmark_out_format={json|console|csv}
 // --benchmark_out=<filename>
+// --benchmark_out_format=csv --benchmark_out=fftbench.csv
 int main(int argc, char** argv)
 try
 {

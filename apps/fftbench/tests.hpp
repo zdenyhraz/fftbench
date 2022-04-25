@@ -15,26 +15,11 @@ std::vector<f32> OpenCVTest(std::vector<f32> input)
   return output;
 }
 
-std::vector<f32> FFTWEstimateTest(std::vector<f32> input)
+std::vector<f32> FFTWTest(std::vector<f32> input, u32 flags)
 {
   f32* inputAligned = fftwf_alloc_real(input.size());
   fftwf_complex* outputAligned = fftwf_alloc_complex(input.size() / 2 + 1);
-  fftwf_plan plan = fftwf_plan_dft_r2c_1d(input.size(), inputAligned, outputAligned, FFTW_ESTIMATE);
-  std::memcpy(inputAligned, input.data(), input.size() * sizeof(f32));
-  fftwf_execute(plan);
-  const auto output = GetFFTVector(std::bit_cast<f32*>(outputAligned), input.size() + 2);
-  fftwf_destroy_plan(plan);
-  fftwf_free(inputAligned);
-  fftwf_free(outputAligned);
-  fftwf_cleanup();
-  return output;
-}
-
-std::vector<f32> FFTWMeasureTest(std::vector<f32> input)
-{
-  f32* inputAligned = fftwf_alloc_real(input.size());
-  fftwf_complex* outputAligned = fftwf_alloc_complex(input.size() / 2 + 1);
-  fftwf_plan plan = fftwf_plan_dft_r2c_1d(input.size(), inputAligned, outputAligned, FFTW_MEASURE);
+  fftwf_plan plan = fftwf_plan_dft_r2c_1d(input.size(), inputAligned, outputAligned, flags);
   std::memcpy(inputAligned, input.data(), input.size() * sizeof(f32));
   fftwf_execute(plan);
   const auto output = GetFFTVector(std::bit_cast<f32*>(outputAligned), input.size() + 2);
@@ -73,16 +58,16 @@ std::vector<f32> PFFFTTest(std::vector<f32> input)
   return GetFFTVector(std::bit_cast<f32*>(outputAligned.data()), input.size() + 2);
 }
 
-void PrintFFT(const std::vector<f32>& fft)
+void PrintFFT(const std::vector<f32>& fft, const std::string& prefix = "", const std::string& suffix = "")
 {
-  fmt::print("[");
+  fmt::print("{}[", prefix);
   for (usize i = 0; i < fft.size(); ++i)
   {
     fmt::print("{:.2f}", fft[i]);
     if (i < fft.size() - 1)
       fmt::print(", ");
   }
-  fmt::print("] ");
+  fmt::print("]{}", suffix);
 }
 
 void CheckEqual(const std::string& name, const std::vector<f32>& fftref, const std::vector<f32>& fft)
@@ -92,20 +77,28 @@ void CheckEqual(const std::string& name, const std::vector<f32>& fftref, const s
   if (std::abs(static_cast<i32>(fft.size()) - static_cast<i32>(fftref.size())) > 2)
     throw std::runtime_error(fmt::format("{} size differs: {} != {}", name, fft.size(), fftref.size()));
 
-  static constexpr f32 tolerance = 1e-6;
+  static constexpr f32 tolerance = 1e-3;
   static constexpr usize pad = 2;
-  bool ok = true;
-
+  f64 maxdiff = 0;
   for (usize i = pad; i < std::min(fft.size(), fftref.size()) - pad; ++i)
-    if ((std::abs(fft[i] - fftref[i]) > tolerance) and (std::abs(fft[i] - fftref[i - 1]) > tolerance) and (std::abs(fft[i] - fftref[i + 1]) > tolerance))
-      ok = false;
+  {
+    const f64 diff1 = std::abs(static_cast<f64>(fft[i]) - fftref[i]);
+    const f64 diff2 = std::abs(static_cast<f64>(fft[i]) - fftref[i - 1]);
+    const f64 diff3 = std::abs(static_cast<f64>(fft[i]) - fftref[i + 1]);
+    maxdiff = std::max(maxdiff, std::min({diff1, diff2, diff3}));
+  }
 
-  fmt::print("{} ", ok ? "OK" : "NOK");
-  if (fft.size() <= 34)
-    PrintFFT(fft);
-  fmt::print("\n");
+  const bool ok = maxdiff <= tolerance;
+  fmt::print("{}, maxdiff: {:.2e}\n", ok ? "OK" : "NOK", maxdiff);
   if (not ok)
-    throw std::runtime_error(fmt::format("{} did not pass the tests", name));
+  {
+    if (fft.size() <= 128)
+    {
+      PrintFFT(fftref, "Reference: ", "\n");
+      PrintFFT(fft, fmt::format("{}: ", name), "\n");
+    }
+    throw std::runtime_error(fmt::format("{} did not pass the tests ", name));
+  }
 }
 
 void RunTests(usize size)
@@ -113,14 +106,15 @@ void RunTests(usize size)
   std::srand(std::time(nullptr));
 
   const auto input = GenerateRandomVector(size);
-  const auto fftref = FFTWEstimateTest(input);
+  const auto fftref = FFTWTest(input, FFTW_MEASURE);
 
   if (std::ranges::count_if(fftref, [](const auto& x) { return x != std::complex<f32>{0, 0}; }) == 0)
     throw std::runtime_error("Invalid reference FFT");
 
-  CheckEqual("OpenCV-IPP ccs", fftref, OpenCVTest(input));
-  CheckEqual("FFTW est r2c", fftref, FFTWEstimateTest(input));
-  CheckEqual("FFTW mes r2c", fftref, FFTWMeasureTest(input));
+  CheckEqual("FFTW estimate", fftref, FFTWTest(input, FFTW_ESTIMATE));
+  CheckEqual("FFTW measure", fftref, FFTWTest(input, FFTW_MEASURE));
+  CheckEqual("FFTW patient", fftref, FFTWTest(input, FFTW_PATIENT));
+  CheckEqual("OpenCV-IPP", fftref, OpenCVTest(input));
   CheckEqual("PocketFFT", fftref, PocketFFTTest(input));
   CheckEqual("PFFFT", fftref, PFFFTTest(input));
 }
