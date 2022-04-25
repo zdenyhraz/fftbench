@@ -71,10 +71,6 @@ include_directories(libs)
 file(GLOB_RECURSE SRC CONFIGURE_DEPENDS src/*.hpp src/*.cpp)
 target_sources(fftbench PRIVATE ${SRC})
 
-# fftbench app sources
-file(GLOB SRC_APP CONFIGURE_DEPENDS apps/fftbench/*.cpp)
-target_sources(fftbench PRIVATE ${SRC_APP})
-
 # precompiled headers
 if (ENABLE_PCH)
   set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
