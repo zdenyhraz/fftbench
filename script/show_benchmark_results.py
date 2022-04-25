@@ -48,7 +48,7 @@ for exp in range(int(np.log2(minsize)), int(np.log2(maxsize))+1):
   xticksvalues.append(np.power(2, exp))
   xtickslabels.append("$2^{" + "{}".format(int(exp)) + "}$")
 
-
+plt.figure(figsize=(10, 10))
 plt.subplot(2, 1, 1)
 for name, entry in entries.items():
   plt.plot(entry.sizes, entry.times, "*-", label=name, linewidth=2)
