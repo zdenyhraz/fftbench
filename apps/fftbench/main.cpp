@@ -3,7 +3,7 @@
 
 // --benchmark_out_format={json|console|csv}
 // --benchmark_out=<filename>
-// --benchmark_out_format=csv --benchmark_out=fftbench.csv
+// --benchmark_out_format=csv --benchmark_out=../data/fftbench.csv
 int main(int argc, char** argv)
 try
 {
