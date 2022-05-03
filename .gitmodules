@@ -7,3 +7,6 @@
 [submodule "libs/pocketfft"]
 	path = libs/pocketfft
 	url = https://gitlab.mpcdf.mpg.de/mtr/pocketfft.git
+[submodule "libs/kfr"]
+	path = libs/kfr
+	url = https://github.com/kfrlib/kfr.git

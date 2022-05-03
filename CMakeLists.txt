@@ -63,6 +63,16 @@ target_link_libraries(fftbench PRIVATE fftw3f)
 # pffft
 target_link_libraries(fftbench PRIVATE libpffft.a)
 
+# kfr
+add_subdirectory(libs/kfr)
+target_compile_options(kfr INTERFACE -w)
+target_compile_options(kfr_dft PRIVATE -w)
+target_compile_options(kfr_io PRIVATE -w)
+target_link_libraries(fftbench PRIVATE kfr)
+target_link_libraries(fftbench PRIVATE kfr_dft)
+target_link_libraries(fftbench PRIVATE kfr_io)
+
+
 # custom
 include_directories(src)
 include_directories(libs)
@@ -71,9 +81,4 @@ include_directories(libs)
 file(GLOB_RECURSE SRC CONFIGURE_DEPENDS src/*.hpp src/*.cpp)
 target_sources(fftbench PRIVATE ${SRC})
 
-# precompiled headers
-if (ENABLE_PCH)
-  set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
-  set(SRC_PRECOMPILED src/Precompiled.hpp)
-  target_precompile_headers(fftbench PRIVATE ${SRC_PRECOMPILED})
-endif()
+

@@ -3,7 +3,6 @@
 #include <string>
 #include <exception>
 #include <complex>
-#include <ranges>
 
 #include <fmt/format.h>
 
@@ -17,6 +16,9 @@
 #include <pocketfft/pocketfft_hdronly.h>
 
 #include <pffft.hpp>
+
+#include <kfr/base.hpp>
+#include <kfr/dft.hpp>
 
 using i8 = int8_t;
 using u8 = uint8_t;

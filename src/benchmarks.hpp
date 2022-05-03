@@ -1,4 +1,5 @@
 #pragma once
+#include "Precompiled.hpp"
 
 // from https://www.fftw.org/fftw3_doc/One_002dDimensional-DFTs-of-Real-Data.html
 // In many practical applications, the input data in[i] are purely real numbers, in which case the DFT output satisfies the “Hermitian” redundancy:
@@ -58,6 +59,18 @@ static void PFFFTBenchmark(benchmark::State& state, std::vector<f32> input)
     fft.forward(inputAligned, outputAligned);
 }
 
+static void KFRBenchmark(benchmark::State& state, std::vector<f32> input)
+{
+  kfr::univector<f32> in(input.size());
+  kfr::univector<kfr::complex<f32>> out(input.size());
+  kfr::dft_plan_real<f32> plan(input.size());
+  std::memcpy(in.data(), input.data(), input.size() * sizeof(f32));
+  kfr::univector<kfr::u8> temp(plan.temp_size);
+
+  for (auto _ : state)
+    plan.execute(out, in, temp);
+}
+
 void RegisterBenchmarks()
 {
   static constexpr auto expmin = 8;  // 8=512
@@ -76,5 +89,6 @@ void RegisterBenchmarks()
     benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV-IPP", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | PocketFFT", size).c_str(), PocketFFTBenchmark, input)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | PFFFT", size).c_str(), PFFFTBenchmark, input)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | KFR", size).c_str(), KFRBenchmark, input)->Unit(timeunit);
   }
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "Precompiled.hpp"
 
 std::vector<f32> GetFFTVector(f32* input, usize size)
 {
@@ -56,6 +57,17 @@ std::vector<f32> PFFFTTest(std::vector<f32> input)
   std::memcpy(inputAligned.data(), input.data(), input.size() * sizeof(f32));
   fft.forward(inputAligned, outputAligned);
   return GetFFTVector(std::bit_cast<f32*>(outputAligned.data()), input.size() + 2);
+}
+
+std::vector<f32> KFRTest(std::vector<f32> input)
+{
+  kfr::univector<f32> in(input.size());
+  kfr::univector<kfr::complex<f32>> out(input.size());
+  kfr::dft_plan_real<f32> plan(input.size());
+  std::memcpy(in.data(), input.data(), input.size() * sizeof(f32));
+  kfr::univector<u8> temp(plan.temp_size);
+  plan.execute(out, in, temp);
+  return GetFFTVector(std::bit_cast<f32*>(out.data()), input.size() + 2);
 }
 
 void PrintFFT(const std::vector<f32>& fft, const std::string& prefix = "", const std::string& suffix = "")
@@ -117,4 +129,5 @@ void RunTests(usize size)
   CheckEqual("OpenCV-IPP", fftref, OpenCVTest(input));
   CheckEqual("PocketFFT", fftref, PocketFFTTest(input));
   CheckEqual("PFFFT", fftref, PFFFTTest(input));
+  CheckEqual("KFR", fftref, KFRTest(input));
 }
