@@ -123,3 +123,8 @@ name,iterations,real_time,cpu_time,time_unit,bytes_per_second,items_per_second,l
 " 8388608 | KFR",20,31.9796,31.9766,ms,,,,,
 "16777216 | FFTW estimate",2,252.345,252.05,ms,,,,,
 "16777216 | FFTW measure",8,93.4578,93.457,ms,,,,,
+"16777216 | FFTW patient",15,46.2765,46.276,ms,,,,,
+"16777216 | OpenCV-IPP",8,81.3084,81.2577,ms,,,,,
+"16777216 | PocketFFT",3,206.562,204.655,ms,,,,,
+"16777216 | PFFFT",5,118.638,118.316,ms,,,,,
+"16777216 | KFR",13,55.7076,55.7071,ms,,,,,
