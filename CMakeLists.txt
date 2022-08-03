@@ -14,12 +14,12 @@ set(ENABLE_PCH ON)
 add_executable(fftbench)
 
 # compiler flags
-target_compile_options(fftbench PRIVATE 
+target_compile_options(fftbench PRIVATE
 -march=atom -fopenmp 
 -Wall -Werror -Wfatal-errors -Wextra -Wpedantic -Wshadow 
 -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function 
 $<$<CONFIG:DEBUG>:-g;-O0>
-$<$<CONFIG:DEBUG>:-O3>)
+$<$<CONFIG:RELEASE>:-O3>)
 
 # ignore warnings from external sources
 file(GLOB_RECURSE SRC_LIBS CONFIGURE_DEPENDS */libs/*.h */libs/*.hpp */libs/*.c */libs/*.cpp)
