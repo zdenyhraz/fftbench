@@ -2,3 +2,4 @@
 build
 debug
 __pycache__
+libs/fftw

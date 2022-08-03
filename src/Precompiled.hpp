@@ -5,18 +5,11 @@
 #include <complex>
 
 #include <fmt/format.h>
-
 #include <benchmark/benchmark.h>
-
 #include <opencv2/opencv.hpp>
-
-#include <fftw3.h>
-
-#define POCKETFFT_NO_MULTITHREADING
+#include <fftw/api/fftw3.h>
 #include <pocketfft/pocketfft_hdronly.h>
-
-#include <pffft.hpp>
-
+#include <pffft/pffft.hpp>
 #include <kfr/base.hpp>
 #include <kfr/dft.hpp>
 

@@ -1,5 +1,5 @@
-#include "benchmarks.hpp"
-#include "tests.hpp"
+#include "Benchmarks.hpp"
+#include "Tests.hpp"
 
 // --benchmark_out_format={json|console|csv}
 // --benchmark_out=<filename>
