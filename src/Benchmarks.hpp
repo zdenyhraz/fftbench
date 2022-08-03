@@ -10,12 +10,14 @@
 // Second, the inverse transform (complex to real) has the side-effect of overwriting its input array, by default. Neither of these inconveniences
 // should pose a serious problem for users, but it is important to be aware of them.
 
+#ifdef ENABLE_OPENCV
 static void OpenCVBenchmark(benchmark::State& state, std::vector<f32> input)
 {
   std::vector<f32> outputf;
   for (auto _ : state)
     cv::dft(input, outputf);
 }
+#endif
 
 static void FFTWBenchmark(benchmark::State& state, std::vector<f32> input, u32 flags)
 {
@@ -86,9 +88,11 @@ void RegisterBenchmarks()
     benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW estimate", size).c_str(), FFTWBenchmark, input, FFTW_ESTIMATE)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW measure", size).c_str(), FFTWBenchmark, input, FFTW_MEASURE)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW patient", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT)->Unit(timeunit);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV-IPP", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | PocketFFT", size).c_str(), PocketFFTBenchmark, input)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | PFFFT", size).c_str(), PFFFTBenchmark, input)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | KFR", size).c_str(), KFRBenchmark, input)->Unit(timeunit);
+#ifdef ENABLE_OPENCV
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV(IPP)", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit);
+#endif
   }
 }

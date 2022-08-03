@@ -6,12 +6,15 @@
 
 #include <fmt/format.h>
 #include <benchmark/benchmark.h>
-#include <opencv2/opencv.hpp>
 #include <fftw/api/fftw3.h>
 #include <pocketfft/pocketfft_hdronly.h>
 #include <pffft/pffft.hpp>
 #include <kfr/base.hpp>
 #include <kfr/dft.hpp>
+
+#ifdef ENABLE_OPENCV
+  #include <opencv2/opencv.hpp>
+#endif
 
 using i8 = int8_t;
 using u8 = uint8_t;

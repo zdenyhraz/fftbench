@@ -9,6 +9,7 @@ set(ENABLE_PROFILING OFF)
 set(ENABLE_SANITIZER OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(ENABLE_PCH ON)
+set(ENABLE_OPENCV OFF)
 
 # targets
 add_executable(fftbench)
@@ -42,9 +43,12 @@ add_subdirectory(libs/benchmark)
 target_link_libraries(fftbench PRIVATE benchmark::benchmark)
 
 # opencv
-find_package(OpenCV REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS})
-target_link_libraries(fftbench PRIVATE ${OpenCV_LIBS})
+find_package(OpenCV)
+if (ENABLE_OPENCV AND OpenCV_FOUND)
+  add_compile_definitions(ENABLE_OPENCV)
+  include_directories(${OpenCV_INCLUDE_DIRS})
+  target_link_libraries(fftbench PRIVATE ${OpenCV_LIBS})
+endif()
 
 # fftw
 set(ENABLE_AVX ON)

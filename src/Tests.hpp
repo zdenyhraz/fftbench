@@ -9,12 +9,14 @@ std::vector<f32> GetFFTVector(f32* input, usize size)
   return output;
 }
 
+#ifdef ENABLE_OPENCV
 std::vector<f32> OpenCVTest(std::vector<f32> input)
 {
   std::vector<f32> output;
   cv::dft(input, output);
   return output;
 }
+#endif
 
 std::vector<f32> FFTWTest(std::vector<f32> input, u32 flags)
 {
@@ -126,8 +128,10 @@ void RunTests(usize size)
   CheckEqual("FFTW estimate", fftref, FFTWTest(input, FFTW_ESTIMATE));
   CheckEqual("FFTW measure", fftref, FFTWTest(input, FFTW_MEASURE));
   CheckEqual("FFTW patient", fftref, FFTWTest(input, FFTW_PATIENT));
-  CheckEqual("OpenCV-IPP", fftref, OpenCVTest(input));
   CheckEqual("PocketFFT", fftref, PocketFFTTest(input));
   CheckEqual("PFFFT", fftref, PFFFTTest(input));
   CheckEqual("KFR", fftref, KFRTest(input));
+#ifdef ENABLE_OPENCV
+  CheckEqual("OpenCV(IPP)", fftref, OpenCVTest(input));
+#endif
 }
