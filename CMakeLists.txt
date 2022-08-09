@@ -70,7 +70,7 @@ target_link_libraries(fftbench PRIVATE PFFFT)
 add_compile_definitions(POCKETFFT_NO_MULTITHREADING)
 
 # kfr
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   add_compile_definitions(ENABLE_KFR)
   add_subdirectory(libs/kfr)
   target_compile_options(kfr INTERFACE -w)
