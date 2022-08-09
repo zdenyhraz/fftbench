@@ -10,7 +10,6 @@ set(ENABLE_SANITIZER OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(ENABLE_PCH ON)
 set(ENABLE_OPENCV OFF)
-set(ENABLE_FLOAT ON)
 
 # targets
 add_executable(fftbench)
@@ -53,15 +52,16 @@ if (ENABLE_OPENCV AND OpenCV_FOUND)
 endif()
 
 # fftw
-set(ENABLE_AVX ON)
-set(ENABLE_AVX2 ON)
-set(ENABLE_SSE ON)
-set(ENABLE_SSE2 ON)
+set(ENABLE_FLOAT ON CACHE BOOL "FFTW: Single-precision")
+set(ENABLE_SSE ON CACHE BOOL "FFTW: Compile with SSE instruction set support")
+set(ENABLE_SSE2 ON CACHE BOOL "FFTW: Compile with SSE2 instruction set support")
+set(ENABLE_AVX ON CACHE BOOL "FFTW: Compile with AVX instruction set support")
+set(ENABLE_AVX2 ON CACHE BOOL "FFTW: Compile with AVX2 instruction set support")
 add_subdirectory(libs/fftw)
 target_link_libraries(fftbench PRIVATE fftw3f)
 
 # pffft
-set(USE_SIMD ON)
+set(USE_SIMD ON CACHE BOOL "PFFFT: Use SIMD (SSE/AVX/NEON/ALTIVEC) CPU features")
 add_subdirectory(libs/pffft)
 target_compile_options(PFFFT PRIVATE -w)
 target_link_libraries(fftbench PRIVATE PFFFT)
