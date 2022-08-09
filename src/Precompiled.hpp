@@ -9,8 +9,11 @@
 #include <fftw/api/fftw3.h>
 #include <pocketfft/pocketfft_hdronly.h>
 #include <pffft/pffft.hpp>
-#include <kfr/base.hpp>
-#include <kfr/dft.hpp>
+
+#ifdef ENABLE_KFR
+  #include <kfr/base.hpp>
+  #include <kfr/dft.hpp>
+#endif
 
 #ifdef ENABLE_OPENCV
   #include <opencv2/opencv.hpp>

@@ -10,6 +10,7 @@ set(ENABLE_SANITIZER OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(ENABLE_PCH ON)
 set(ENABLE_OPENCV OFF)
+set(ENABLE_FLOAT ON)
 
 # targets
 add_executable(fftbench)
@@ -17,14 +18,15 @@ add_executable(fftbench)
 # compiler flags
 target_compile_options(fftbench PRIVATE
 -march=atom -fopenmp 
--Wall -Werror -Wfatal-errors -Wextra -Wpedantic -Wshadow 
+-Wall -Werror -Wfatal-errors -Wextra -Wpedantic 
+#-Wshadow 
 -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function 
 $<$<CONFIG:DEBUG>:-g;-O0>
 $<$<CONFIG:RELEASE>:-O3>)
 
 # ignore warnings from external sources
-file(GLOB_RECURSE SRC_LIBS CONFIGURE_DEPENDS */libs/*.h */libs/*.hpp */libs/*.c */libs/*.cpp)
-set_source_files_properties(${SRC_LIBS} PROPERTIES COMPILE_FLAGS "-w")
+file(GLOB_RECURSE SRC_LIBS CONFIGURE_DEPENDS libs/*.h libs/*.hpp libs/*.c libs/*.cpp)
+set_source_files_properties(${SRC_LIBS} PROPERTIES COMPILE_FLAGS -w)
 
 # ccache
 find_program(CCACHE_FOUND ccache)
@@ -61,19 +63,23 @@ target_link_libraries(fftbench PRIVATE fftw3f)
 # pffft
 set(USE_SIMD ON)
 add_subdirectory(libs/pffft)
+target_compile_options(PFFFT PRIVATE -w)
 target_link_libraries(fftbench PRIVATE PFFFT)
 
 # pocketfft
 add_compile_definitions(POCKETFFT_NO_MULTITHREADING)
 
 # kfr
-add_subdirectory(libs/kfr)
-target_compile_options(kfr INTERFACE -w)
-target_compile_options(kfr_dft PRIVATE -w)
-target_compile_options(kfr_io PRIVATE -w)
-target_link_libraries(fftbench PRIVATE kfr)
-target_link_libraries(fftbench PRIVATE kfr_dft)
-target_link_libraries(fftbench PRIVATE kfr_io)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+  add_compile_definitions(ENABLE_KFR)
+  add_subdirectory(libs/kfr)
+  target_compile_options(kfr PRIVATE -w)
+  target_compile_options(kfr_dft PRIVATE -w)
+  target_compile_options(kfr_io PRIVATE -w)
+  target_link_libraries(fftbench PRIVATE kfr)
+  target_link_libraries(fftbench PRIVATE kfr_dft)
+  target_link_libraries(fftbench PRIVATE kfr_io)
+endif()
 
 # custom
 include_directories(src)

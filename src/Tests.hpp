@@ -61,6 +61,7 @@ std::vector<f32> PFFFTTest(std::vector<f32> input)
   return GetFFTVector(std::bit_cast<f32*>(outputAligned.data()), input.size() + 2);
 }
 
+#ifdef ENABLE_KFR
 std::vector<f32> KFRTest(std::vector<f32> input)
 {
   kfr::univector<f32> in(input.size());
@@ -71,6 +72,7 @@ std::vector<f32> KFRTest(std::vector<f32> input)
   plan.execute(out, in, temp);
   return GetFFTVector(std::bit_cast<f32*>(out.data()), input.size() + 2);
 }
+#endif
 
 void PrintFFT(const std::vector<f32>& fft, const std::string& prefix = "", const std::string& suffix = "")
 {
@@ -130,7 +132,9 @@ void RunTests(usize size)
   CheckEqual("FFTW patient", fftref, FFTWTest(input, FFTW_PATIENT));
   CheckEqual("PocketFFT", fftref, PocketFFTTest(input));
   CheckEqual("PFFFT", fftref, PFFFTTest(input));
+#ifdef ENABLE_KFR
   CheckEqual("KFR", fftref, KFRTest(input));
+#endif
 #ifdef ENABLE_OPENCV
   CheckEqual("OpenCV(IPP)", fftref, OpenCVTest(input));
 #endif

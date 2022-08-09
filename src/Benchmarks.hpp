@@ -61,6 +61,7 @@ static void PFFFTBenchmark(benchmark::State& state, std::vector<f32> input)
     fft.forward(inputAligned, outputAligned);
 }
 
+#ifdef ENABLE_KFR
 static void KFRBenchmark(benchmark::State& state, std::vector<f32> input)
 {
   kfr::univector<f32> in(input.size());
@@ -72,6 +73,7 @@ static void KFRBenchmark(benchmark::State& state, std::vector<f32> input)
   for (auto _ : state)
     plan.execute(out, in, temp);
 }
+#endif
 
 void RegisterBenchmarks()
 {
@@ -90,7 +92,9 @@ void RegisterBenchmarks()
     benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW patient", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | PocketFFT", size).c_str(), PocketFFTBenchmark, input)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | PFFFT", size).c_str(), PFFFTBenchmark, input)->Unit(timeunit);
+#ifdef ENABLE_KFR
     benchmark::RegisterBenchmark(fmt::format("{:>8} | KFR", size).c_str(), KFRBenchmark, input)->Unit(timeunit);
+#endif
 #ifdef ENABLE_OPENCV
     benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV(IPP)", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit);
 #endif
