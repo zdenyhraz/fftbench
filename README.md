@@ -9,5 +9,5 @@
 
 
 <p align="center">
-  <img src="data/fftbench_example.png" width="70%">
+  <img src="data/fftbench_example.png" width="100%">
 </p>
