@@ -16,7 +16,7 @@ add_executable(fftbench)
 
 # compiler flags
 target_compile_options(fftbench PRIVATE
--march=atom -fopenmp 
+-march=native -fopenmp 
 -Wall -Werror -Wfatal-errors -Wextra -Wpedantic 
 #-Wshadow 
 -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function 
@@ -55,8 +55,8 @@ endif()
 set(ENABLE_FLOAT ON CACHE BOOL "FFTW: Single-precision")
 set(ENABLE_SSE ON CACHE BOOL "FFTW: Compile with SSE instruction set support")
 set(ENABLE_SSE2 ON CACHE BOOL "FFTW: Compile with SSE2 instruction set support")
-set(ENABLE_AVX ON CACHE BOOL "FFTW: Compile with AVX instruction set support")
-set(ENABLE_AVX2 ON CACHE BOOL "FFTW: Compile with AVX2 instruction set support")
+set(ENABLE_AVX OFF CACHE BOOL "FFTW: Compile with AVX instruction set support")
+set(ENABLE_AVX2 OFF CACHE BOOL "FFTW: Compile with AVX2 instruction set support")
 add_subdirectory(libs/fftw)
 target_link_libraries(fftbench PRIVATE fftw3f)
 
@@ -73,7 +73,7 @@ add_compile_definitions(POCKETFFT_NO_MULTITHREADING)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
   add_compile_definitions(ENABLE_KFR)
   add_subdirectory(libs/kfr)
-  target_compile_options(kfr PRIVATE -w)
+  target_compile_options(kfr INTERFACE -w)
   target_compile_options(kfr_dft PRIVATE -w)
   target_compile_options(kfr_io PRIVATE -w)
   target_link_libraries(fftbench PRIVATE kfr)
