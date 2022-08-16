@@ -5,25 +5,16 @@ project(fftbench)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(ENABLE_PROFILING OFF)
-set(ENABLE_SANITIZER OFF)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(ENABLE_PCH ON)
 
 # targets
 add_executable(fftbench)
 
 # compiler flags
-target_compile_options(fftbench PRIVATE
--march=native -fopenmp 
--Wall -Werror -Wfatal-errors -Wextra -Wpedantic #-Wshadow 
--Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function 
-$<$<CONFIG:DEBUG>:-g;-O0>
-$<$<CONFIG:RELEASE>:-O3>)
-
-# ignore warnings from external sources
-# file(GLOB_RECURSE SRC_LIBS CONFIGURE_DEPENDS libs/*.h libs/*.hpp libs/*.c libs/*.cpp)
-# set_source_files_properties(${SRC_LIBS} PROPERTIES COMPILE_FLAGS -w)
+target_compile_options(fftbench PRIVATE -march=native -fopenmp)
+target_compile_options(fftbench PRIVATE -Wall -Werror -Wfatal-errors -Wextra -Wpedantic) #-Wshadow
+target_compile_options(fftbench PRIVATE -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function)
+target_compile_options(fftbench PRIVATE "$<$<CONFIG:DEBUG>:-g;-O0>")
+target_compile_options(fftbench PRIVATE "$<$<CONFIG:RELEASE>:-O3>")
 
 # ccache
 find_program(CCACHE_FOUND ccache)
