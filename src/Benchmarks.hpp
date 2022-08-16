@@ -78,37 +78,27 @@ static void OpenCVBenchmark(benchmark::State& state, std::vector<f32> input)
 #ifdef ENABLE_IPP
 static void IPPBenchmark(benchmark::State& state, std::vector<f32> input, IppHintAlgorithm hint)
 {
-  // Set the size
   const int N = input.size();
-
-  // Allocate complex buffers
+  const auto flag = IPP_FFT_NODIV_BY_ANY;
   auto pSrc = ippsMalloc_32f(N);
   auto pDst = ippsMalloc_32f(N);
-
-  // Query to get buffer sizes
+  std::memcpy(pSrc, input.data(), input.size() * sizeof(f32));
   int sizeDFTSpec, sizeDFTInitBuf, sizeDFTWorkBuf;
-  auto flag = IPP_FFT_NODIV_BY_ANY;
-
   ippsDFTGetSize_R_32f(N, flag, hint, &sizeDFTSpec, &sizeDFTInitBuf, &sizeDFTWorkBuf);
-
-  // Alloc DFT buffers
   auto pDFTSpec = (IppsDFTSpec_R_32f*)ippsMalloc_8u(sizeDFTSpec);
   auto pDFTInitBuf = ippsMalloc_8u(sizeDFTInitBuf);
   auto pDFTWorkBuf = ippsMalloc_8u(sizeDFTWorkBuf);
-
-  // Initialize DFT
   ippsDFTInit_R_32f(N, flag, hint, pDFTSpec, pDFTInitBuf);
   if (pDFTInitBuf)
     ippFree(pDFTInitBuf);
 
   for (auto _ : state)
-    ippsDFTFwd_RToCCS_32f(pSrc, pDst, pDFTSpec, pDFTWorkBuf); // Do the DFT
+    ippsDFTFwd_RToCCS_32f(pSrc, pDst, pDFTSpec, pDFTWorkBuf);
 
   if (pDFTWorkBuf)
     ippFree(pDFTWorkBuf);
   if (pDFTSpec)
     ippFree(pDFTSpec);
-
   ippFree(pSrc);
   ippFree(pDst);
 }

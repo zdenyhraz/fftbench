@@ -5,6 +5,7 @@ static void Init()
 {
 #ifdef ENABLE_IPP
   ippInit();
+  ippSetNumThreads(1);
   const auto libVersion = ippGetLibVersion();
   fmt::print("IPP version: {} {}\n", libVersion->Name, libVersion->Version);
 #endif
@@ -18,7 +19,7 @@ try
 {
   Init();
 
-  static constexpr usize testSize = 1 << 5;
+  static constexpr usize testSize = 1024;
   if constexpr (testSize > 0)
     RunTests(testSize);
 
