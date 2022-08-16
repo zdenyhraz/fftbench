@@ -23,7 +23,7 @@ entries = {}
 minsize = np.inf
 maxsize = 0
 
-with open('data/fftbench_example.csv', newline='') as csvfile:
+with open('data/fftbench.csv', newline='') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     for row in reader:
         string = ', '.join(row)
@@ -69,5 +69,5 @@ plt.xticks(xticksvalues, xtickslabels)
 plt.legend()
 
 plt.tight_layout()
-plt.savefig("data/fftbench_example.png")
+plt.savefig("data/fftbench.png")
 plt.show()

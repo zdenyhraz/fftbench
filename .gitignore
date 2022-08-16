@@ -4,3 +4,5 @@ debug
 __pycache__
 libs/fftw
 libs/intel
+data/fftbench.csv
+data/fftbench.png
