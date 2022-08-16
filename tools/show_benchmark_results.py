@@ -2,6 +2,9 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 
+time_unit_input = 1e-3
+time_unit_output = 1e-3
+
 
 class BenchmarkEntry:
     def __init__(self, size, time):
@@ -17,8 +20,6 @@ def find_nth(haystack, needle, n):
     return start
 
 
-time_unit_input = 1e-6
-time_unit = 1e-3
 entries = {}
 minsize = np.inf
 maxsize = 0
@@ -31,7 +32,8 @@ with open('data/fftbench.csv', newline='') as csvfile:
             print("Processing", string)
             size = int(string[0:string.find(" | ")].strip())
             name = string[string.find(" | ")+2:string.find(",")].strip()
-            time = float(string[find_nth(string, ",", 2)+1:find_nth(string, ",", 3)].strip())/(time_unit/1e-6)  # [ms]
+            time = float(string[find_nth(string, ",", 2)+1:find_nth(string, ",", 3)].strip()) / \
+                (time_unit_output/time_unit_input)
             minsize = min(minsize, size)
             maxsize = max(maxsize, size)
 
