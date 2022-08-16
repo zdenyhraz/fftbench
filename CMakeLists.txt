@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.11)
 project(fftbench)
 
 # variables
@@ -16,15 +16,14 @@ add_executable(fftbench)
 # compiler flags
 target_compile_options(fftbench PRIVATE
 -march=native -fopenmp 
--Wall -Werror -Wfatal-errors -Wextra -Wpedantic 
-#-Wshadow 
+-Wall -Werror -Wfatal-errors -Wextra -Wpedantic #-Wshadow 
 -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function 
 $<$<CONFIG:DEBUG>:-g;-O0>
 $<$<CONFIG:RELEASE>:-O3>)
 
 # ignore warnings from external sources
-file(GLOB_RECURSE SRC_LIBS CONFIGURE_DEPENDS libs/*.h libs/*.hpp libs/*.c libs/*.cpp)
-set_source_files_properties(${SRC_LIBS} PROPERTIES COMPILE_FLAGS -w)
+# file(GLOB_RECURSE SRC_LIBS CONFIGURE_DEPENDS libs/*.h libs/*.hpp libs/*.c libs/*.cpp)
+# set_source_files_properties(${SRC_LIBS} PROPERTIES COMPILE_FLAGS -w)
 
 # ccache
 find_program(CCACHE_FOUND ccache)
@@ -35,19 +34,19 @@ endif()
 # fmt
 add_subdirectory(libs/fmt)
 include_directories(libs/fmt/include)
-target_link_libraries(fftbench PRIVATE fmt::fmt-header-only)
+target_link_libraries(fftbench fmt::fmt-header-only)
 
 # benchmark
 set(BENCHMARK_ENABLE_TESTING OFF)
 add_subdirectory(libs/benchmark)
-target_link_libraries(fftbench PRIVATE benchmark::benchmark)
+target_link_libraries(fftbench benchmark::benchmark)
 
 # opencv
 find_package(OpenCV)
 if (OpenCV_FOUND)
   add_compile_definitions(ENABLE_OPENCV)
   include_directories(${OpenCV_INCLUDE_DIRS})
-  target_link_libraries(fftbench PRIVATE ${OpenCV_LIBS})
+  target_link_libraries(fftbench ${OpenCV_LIBS})
 endif()
 
 # fftw
@@ -57,13 +56,13 @@ set(ENABLE_SSE2 ON CACHE BOOL "FFTW: Compile with SSE2 instruction set support")
 set(ENABLE_AVX OFF CACHE BOOL "FFTW: Compile with AVX instruction set support")
 set(ENABLE_AVX2 OFF CACHE BOOL "FFTW: Compile with AVX2 instruction set support")
 add_subdirectory(libs/fftw)
-target_link_libraries(fftbench PRIVATE fftw3f)
+target_link_libraries(fftbench fftw3f)
 
 # pffft
 set(USE_SIMD ON CACHE BOOL "PFFFT: Use SIMD (SSE/AVX/NEON/ALTIVEC) CPU features")
 add_subdirectory(libs/pffft)
 target_compile_options(PFFFT PRIVATE -w)
-target_link_libraries(fftbench PRIVATE PFFFT)
+target_link_libraries(fftbench PFFFT)
 
 # pocketfft
 add_compile_definitions(POCKETFFT_NO_MULTITHREADING)
@@ -75,9 +74,19 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   target_compile_options(kfr INTERFACE -w)
   target_compile_options(kfr_dft PRIVATE -w)
   target_compile_options(kfr_io PRIVATE -w)
-  target_link_libraries(fftbench PRIVATE kfr)
-  target_link_libraries(fftbench PRIVATE kfr_dft)
-  target_link_libraries(fftbench PRIVATE kfr_io)
+  target_link_libraries(fftbench kfr)
+  target_link_libraries(fftbench kfr_dft)
+  target_link_libraries(fftbench kfr_io)
+endif()
+
+# ipp
+find_package(IPP REQUIRED PATHS libs/intel/oneapi/ipp/latest/lib/cmake/ipp)
+if (IPP_FOUND)
+  add_compile_definitions(ENABLE_IPP)
+  include_directories(libs/intel/oneapi/ipp/latest/include)
+  target_link_libraries(fftbench IPP::ippcore IPP::ippvm IPP::ipps)
+  message(STATUS "IPP_ARCH: " ${IPP_ARCH})
+  message(STATUS "IPP_TL_VARIANT: " ${IPP_TL_VARIANT})
 endif()
 
 # custom
@@ -85,8 +94,7 @@ include_directories(src)
 include_directories(libs)
 
 # sources
-file(GLOB_RECURSE SRC CONFIGURE_DEPENDS src/*.hpp src/*.cpp)
-target_sources(fftbench PRIVATE ${SRC})
+target_sources(fftbench PRIVATE src/Main.cpp)
 
 # status messages
 message(STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})

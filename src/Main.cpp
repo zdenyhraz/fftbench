@@ -1,16 +1,25 @@
 #include "Benchmarks.hpp"
 #include "Tests.hpp"
 
+static void Init()
+{
+#ifdef ENABLE_IPP
+  ippInit();
+  const auto libVersion = ippGetLibVersion();
+  fmt::print("IPP version: {} {}\n", libVersion->Name, libVersion->Version);
+#endif
+}
+
 // --benchmark_out_format={json|console|csv}
 // --benchmark_out=<filename>
 // --benchmark_out_format=csv --benchmark_out=../data/fftbench.csv
 int main(int argc, char** argv)
 try
 {
-  static constexpr bool tests = true;
-  static constexpr usize testSize = 1024;
+  Init();
 
-  if constexpr (tests)
+  static constexpr usize testSize = 1 << 5;
+  if constexpr (testSize > 0)
     RunTests(testSize);
 
   RegisterBenchmarks();

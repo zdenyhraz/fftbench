@@ -9,15 +9,6 @@ std::vector<f32> GetFFTVector(f32* input, usize size)
   return output;
 }
 
-#ifdef ENABLE_OPENCV
-std::vector<f32> OpenCVTest(std::vector<f32> input)
-{
-  std::vector<f32> output;
-  cv::dft(input, output);
-  return output;
-}
-#endif
-
 std::vector<f32> FFTWTest(std::vector<f32> input, u32 flags)
 {
   f32* inputAligned = fftwf_alloc_real(input.size());
@@ -74,12 +65,64 @@ std::vector<f32> KFRTest(std::vector<f32> input)
 }
 #endif
 
+#ifdef ENABLE_OPENCV
+std::vector<f32> OpenCVTest(std::vector<f32> input)
+{
+  std::vector<f32> output;
+  cv::dft(input, output);
+  return output;
+}
+#endif
+
+#ifdef ENABLE_IPP
+std::vector<f32> IPPTest(std::vector<f32> input)
+{
+  // Set the size
+  const int N = input.size();
+
+  // Allocate complex buffers
+  auto pSrc = ippsMalloc_32f(N);
+  auto pDst = ippsMalloc_32f(N);
+
+  // Query to get buffer sizes
+  int sizeDFTSpec, sizeDFTInitBuf, sizeDFTWorkBuf;
+  auto flag = IPP_FFT_NODIV_BY_ANY;
+  auto hint = ippAlgHintAccurate;
+
+  ippsDFTGetSize_R_32f(N, flag, hint, &sizeDFTSpec, &sizeDFTInitBuf, &sizeDFTWorkBuf);
+
+  // Alloc DFT buffers
+  auto pDFTSpec = (IppsDFTSpec_R_32f*)ippsMalloc_8u(sizeDFTSpec);
+  auto pDFTInitBuf = ippsMalloc_8u(sizeDFTInitBuf);
+  auto pDFTWorkBuf = ippsMalloc_8u(sizeDFTWorkBuf);
+
+  // Initialize DFT
+  ippsDFTInit_R_32f(N, flag, hint, pDFTSpec, pDFTInitBuf);
+  if (pDFTInitBuf)
+    ippFree(pDFTInitBuf);
+
+  ippsDFTFwd_RToCCS_32f(pSrc, pDst, pDFTSpec, pDFTWorkBuf); // Do the DFT
+
+  const auto output = GetFFTVector(std::bit_cast<f32*>(pDst), input.size() + 2);
+
+  if (pDFTWorkBuf)
+    ippFree(pDFTWorkBuf);
+  if (pDFTSpec)
+    ippFree(pDFTSpec);
+
+  ippFree(pSrc);
+  ippFree(pDst);
+
+  return output;
+}
+#endif
+
 void PrintFFT(const std::vector<f32>& fft, const std::string& prefix = "", const std::string& suffix = "")
 {
-  fmt::print("{}[", prefix);
+  fmt::print("{}\n[", prefix);
   for (usize i = 0; i < fft.size(); ++i)
   {
-    fmt::print("{:.2f}", fft[i]);
+    fmt::print("{:.1e}", fft[i]);
     if (i < fft.size() - 1)
       fmt::print(", ");
   }
@@ -136,6 +179,9 @@ void RunTests(usize size)
   CheckEqual("KFR", fftref, KFRTest(input));
 #endif
 #ifdef ENABLE_OPENCV
-  CheckEqual("OpenCV(IPP)", fftref, OpenCVTest(input));
+  CheckEqual("OpenCV", fftref, OpenCVTest(input));
+#endif
+#ifdef ENABLE_IPP
+  CheckEqual("IPP", fftref, IPPTest(input));
 #endif
 }

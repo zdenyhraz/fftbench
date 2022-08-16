@@ -19,6 +19,10 @@
   #include <opencv2/opencv.hpp>
 #endif
 
+#ifdef ENABLE_IPP
+  #include "ipp.h"
+#endif
+
 using i8 = int8_t;
 using u8 = uint8_t;
 using i16 = int16_t;

@@ -10,15 +10,6 @@
 // Second, the inverse transform (complex to real) has the side-effect of overwriting its input array, by default. Neither of these inconveniences
 // should pose a serious problem for users, but it is important to be aware of them.
 
-#ifdef ENABLE_OPENCV
-static void OpenCVBenchmark(benchmark::State& state, std::vector<f32> input)
-{
-  std::vector<f32> outputf;
-  for (auto _ : state)
-    cv::dft(input, outputf);
-}
-#endif
-
 static void FFTWBenchmark(benchmark::State& state, std::vector<f32> input, u32 flags)
 {
   f32* inputAligned = fftwf_alloc_real(input.size());
@@ -75,6 +66,54 @@ static void KFRBenchmark(benchmark::State& state, std::vector<f32> input)
 }
 #endif
 
+#ifdef ENABLE_OPENCV
+static void OpenCVBenchmark(benchmark::State& state, std::vector<f32> input)
+{
+  std::vector<f32> outputf;
+  for (auto _ : state)
+    cv::dft(input, outputf);
+}
+#endif
+
+#ifdef ENABLE_IPP
+static void IPPBenchmark(benchmark::State& state, std::vector<f32> input, IppHintAlgorithm hint)
+{
+  // Set the size
+  const int N = input.size();
+
+  // Allocate complex buffers
+  auto pSrc = ippsMalloc_32f(N);
+  auto pDst = ippsMalloc_32f(N);
+
+  // Query to get buffer sizes
+  int sizeDFTSpec, sizeDFTInitBuf, sizeDFTWorkBuf;
+  auto flag = IPP_FFT_NODIV_BY_ANY;
+
+  ippsDFTGetSize_R_32f(N, flag, hint, &sizeDFTSpec, &sizeDFTInitBuf, &sizeDFTWorkBuf);
+
+  // Alloc DFT buffers
+  auto pDFTSpec = (IppsDFTSpec_R_32f*)ippsMalloc_8u(sizeDFTSpec);
+  auto pDFTInitBuf = ippsMalloc_8u(sizeDFTInitBuf);
+  auto pDFTWorkBuf = ippsMalloc_8u(sizeDFTWorkBuf);
+
+  // Initialize DFT
+  ippsDFTInit_R_32f(N, flag, hint, pDFTSpec, pDFTInitBuf);
+  if (pDFTInitBuf)
+    ippFree(pDFTInitBuf);
+
+  for (auto _ : state)
+    ippsDFTFwd_RToCCS_32f(pSrc, pDst, pDFTSpec, pDFTWorkBuf); // Do the DFT
+
+  if (pDFTWorkBuf)
+    ippFree(pDFTWorkBuf);
+  if (pDFTSpec)
+    ippFree(pDFTSpec);
+
+  ippFree(pSrc);
+  ippFree(pDst);
+}
+#endif
+
 void RegisterBenchmarks()
 {
   static constexpr auto expmin = 8;  // 8=512
@@ -96,7 +135,11 @@ void RegisterBenchmarks()
     benchmark::RegisterBenchmark(fmt::format("{:>8} | KFR", size).c_str(), KFRBenchmark, input)->Unit(timeunit);
 #endif
 #ifdef ENABLE_OPENCV
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV(IPP)", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit);
+#endif
+#ifdef ENABLE_IPP
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP accurate", size).c_str(), IPPBenchmark, input, ippAlgHintAccurate)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP fast", size).c_str(), IPPBenchmark, input, ippAlgHintFast)->Unit(timeunit);
 #endif
   }
 }
