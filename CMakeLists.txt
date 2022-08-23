@@ -10,16 +10,22 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 add_executable(fftbench)
 
 # compiler flags
-target_compile_options(fftbench PRIVATE -march=native -fopenmp)
-target_compile_options(fftbench PRIVATE -Wall -Werror -Wfatal-errors -Wextra -Wpedantic) #-Wshadow
-target_compile_options(fftbench PRIVATE -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function)
+target_compile_options(fftbench PRIVATE -march=native -fopenmp -pthread)
 target_compile_options(fftbench PRIVATE "$<$<CONFIG:DEBUG>:-g;-O0>")
 target_compile_options(fftbench PRIVATE "$<$<CONFIG:RELEASE>:-O3>")
+target_compile_options(fftbench PRIVATE -Wall -Werror -Wfatal-errors -Wextra -Wpedantic) #-Wshadow
+target_compile_options(fftbench PRIVATE -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function)
 
 # ccache
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
   set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
+endif()
+
+# OpenMP
+find_package(OpenMP)
+if (OpenMP_CXX_FOUND)
+  target_link_libraries(fftbench OpenMP::OpenMP_CXX)
 endif()
 
 # fmt
@@ -41,13 +47,20 @@ if (OpenCV_FOUND)
 endif()
 
 # fftw
+set(ENABLE_OPENMP ON CACHE BOOL "FFTW: Use OpenMP for multithreading")
+set(ENABLE_THREADS ON CACHE BOOL "FFTW: Use pthread for multithreading")
 set(ENABLE_FLOAT ON CACHE BOOL "FFTW: Single-precision")
 set(ENABLE_SSE ON CACHE BOOL "FFTW: Compile with SSE instruction set support")
 set(ENABLE_SSE2 ON CACHE BOOL "FFTW: Compile with SSE2 instruction set support")
 set(ENABLE_AVX OFF CACHE BOOL "FFTW: Compile with AVX instruction set support")
 set(ENABLE_AVX2 OFF CACHE BOOL "FFTW: Compile with AVX2 instruction set support")
 add_subdirectory(libs/fftw)
-target_link_libraries(fftbench fftw3f)
+if (ENABLE_OPENMP AND OpenMP_CXX_FOUND)
+  target_link_libraries(fftbench fftw3f_omp)
+else()
+  target_link_libraries(fftbench fftw3f_threads)
+endif()
+target_link_libraries(fftbench fftw3f m) 
 
 # pffft
 set(USE_SIMD ON CACHE BOOL "PFFFT: Use SIMD (SSE/AVX/NEON/ALTIVEC) CPU features")

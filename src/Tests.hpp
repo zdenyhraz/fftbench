@@ -106,7 +106,7 @@ std::vector<f32> IPPTest(std::vector<f32> input, IppHintAlgorithm hint)
 }
 #endif
 
-void PrintFFT(const std::vector<f32>& fft, const std::string& prefix = "", const std::string& suffix = "")
+void PrintFFT(const std::vector<f32>& fft, const std::string& prefix, const std::string& suffix)
 {
   fmt::print("{}\n[", prefix);
   for (usize i = 0; i < fft.size(); ++i)

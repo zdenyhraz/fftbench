@@ -3,6 +3,7 @@
 
 static void Init()
 {
+  fftwf_init_threads();
 #ifdef ENABLE_IPP
   ippInit();
   ippSetNumThreads(1);

@@ -10,8 +10,9 @@
 // Second, the inverse transform (complex to real) has the side-effect of overwriting its input array, by default. Neither of these inconveniences
 // should pose a serious problem for users, but it is important to be aware of them.
 
-static void FFTWBenchmark(benchmark::State& state, std::vector<f32> input, u32 flags)
+static void FFTWBenchmark(benchmark::State& state, std::vector<f32> input, u32 flags, int nthreads)
 {
+  fftwf_plan_with_nthreads(nthreads);
   f32* inputAligned = fftwf_alloc_real(input.size());
   fftwf_complex* outputAligned = fftwf_alloc_complex(input.size() / 2 + 1);
   fftwf_plan plan = fftwf_plan_dft_r2c_1d(input.size(), inputAligned, outputAligned, flags);
@@ -113,23 +114,25 @@ void RegisterBenchmarks()
   for (const auto exponent : exponents)
   {
     const auto timeunit = benchmark::kMillisecond;
+    const auto iterations = 1000;
     const auto size = 1 << exponent;
     const auto input = GenerateRandomVector(size);
 
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW estimate", size).c_str(), FFTWBenchmark, input, FFTW_ESTIMATE)->Unit(timeunit);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW measure", size).c_str(), FFTWBenchmark, input, FFTW_MEASURE)->Unit(timeunit);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW patient", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT)->Unit(timeunit);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | PocketFFT", size).c_str(), PocketFFTBenchmark, input)->Unit(timeunit);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | PFFFT", size).c_str(), PFFFTBenchmark, input)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW 1 thread", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 1)->Unit(timeunit)->Iterations(iterations);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW 2 threads", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 2)->Unit(timeunit)->Iterations(iterations);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW 3 threads", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 3)->Unit(timeunit)->Iterations(iterations);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW 4 threads", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 4)->Unit(timeunit)->Iterations(iterations);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | PocketFFT", size).c_str(), PocketFFTBenchmark, input)->Unit(timeunit)->Iterations(iterations);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | PFFFT", size).c_str(), PFFFTBenchmark, input)->Unit(timeunit)->Iterations(iterations);
 #ifdef ENABLE_KFR
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | KFR", size).c_str(), KFRBenchmark, input)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | KFR", size).c_str(), KFRBenchmark, input)->Unit(timeunit)->Iterations(iterations);
 #endif
 #ifdef ENABLE_OPENCV
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit)->Iterations(iterations);
 #endif
 #ifdef ENABLE_IPP
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP accurate", size).c_str(), IPPBenchmark, input, ippAlgHintAccurate)->Unit(timeunit);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP fast", size).c_str(), IPPBenchmark, input, ippAlgHintFast)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP accurate", size).c_str(), IPPBenchmark, input, ippAlgHintAccurate)->Unit(timeunit)->Iterations(iterations);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP fast", size).c_str(), IPPBenchmark, input, ippAlgHintFast)->Unit(timeunit)->Iterations(iterations);
 #endif
   }
 }
