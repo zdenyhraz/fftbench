@@ -22,7 +22,7 @@ static void FFTWBenchmark(benchmark::State& state, std::vector<f32> input, u32 f
   fftwf_destroy_plan(plan);
   fftwf_free(inputAligned);
   fftwf_free(outputAligned);
-  fftwf_cleanup();
+  fftwf_cleanup_threads();
 }
 
 static void PocketFFTBenchmark(benchmark::State& state, std::vector<f32> input)
@@ -77,8 +77,9 @@ static void OpenCVBenchmark(benchmark::State& state, std::vector<f32> input)
 #endif
 
 #ifdef ENABLE_IPP
-static void IPPBenchmark(benchmark::State& state, std::vector<f32> input, IppHintAlgorithm hint)
+static void IPPBenchmark(benchmark::State& state, std::vector<f32> input, IppHintAlgorithm hint, int nthreads)
 {
+  ippSetNumThreads(nthreads);
   const int N = input.size();
   const auto flag = IPP_FFT_NODIV_BY_ANY;
   auto pSrc = ippsMalloc_32f(N);
@@ -114,25 +115,30 @@ void RegisterBenchmarks()
   for (const auto exponent : exponents)
   {
     const auto timeunit = benchmark::kMillisecond;
-    const auto iterations = 1000;
     const auto size = 1 << exponent;
     const auto input = GenerateRandomVector(size);
 
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW 1 thread", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 1)->Unit(timeunit)->Iterations(iterations);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW 2 threads", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 2)->Unit(timeunit)->Iterations(iterations);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW 3 threads", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 3)->Unit(timeunit)->Iterations(iterations);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW 4 threads", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 4)->Unit(timeunit)->Iterations(iterations);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | PocketFFT", size).c_str(), PocketFFTBenchmark, input)->Unit(timeunit)->Iterations(iterations);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | PFFFT", size).c_str(), PFFFTBenchmark, input)->Unit(timeunit)->Iterations(iterations);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW_MEASURE 1 thread", size).c_str(), FFTWBenchmark, input, FFTW_MEASURE, 1)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW_MEASURE 2 threads", size).c_str(), FFTWBenchmark, input, FFTW_MEASURE, 2)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW_MEASURE 3 threads", size).c_str(), FFTWBenchmark, input, FFTW_MEASURE, 3)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW_MEASURE 4 threads", size).c_str(), FFTWBenchmark, input, FFTW_MEASURE, 4)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW_PATIENT 1 thread", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 1)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW_PATIENT 2 threads", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 2)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW_PATIENT 3 threads", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 3)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW_PATIENT 4 threads", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 4)->Unit(timeunit);
+    // benchmark::RegisterBenchmark(fmt::format("{:>8} | PocketFFT", size).c_str(), PocketFFTBenchmark, input)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | PFFFT", size).c_str(), PFFFTBenchmark, input)->Unit(timeunit);
 #ifdef ENABLE_KFR
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | KFR", size).c_str(), KFRBenchmark, input)->Unit(timeunit)->Iterations(iterations);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | KFR", size).c_str(), KFRBenchmark, input)->Unit(timeunit);
 #endif
 #ifdef ENABLE_OPENCV
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit)->Iterations(iterations);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit);
 #endif
 #ifdef ENABLE_IPP
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP accurate", size).c_str(), IPPBenchmark, input, ippAlgHintAccurate)->Unit(timeunit)->Iterations(iterations);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP fast", size).c_str(), IPPBenchmark, input, ippAlgHintFast)->Unit(timeunit)->Iterations(iterations);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP 1 thread", size).c_str(), IPPBenchmark, input, ippAlgHintFast, 1)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP 2 threads", size).c_str(), IPPBenchmark, input, ippAlgHintFast, 2)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP 3 threads", size).c_str(), IPPBenchmark, input, ippAlgHintFast, 3)->Unit(timeunit);
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP 4 threads", size).c_str(), IPPBenchmark, input, ippAlgHintFast, 4)->Unit(timeunit);
 #endif
   }
 }

@@ -3,10 +3,11 @@
 
 static void Init()
 {
-  fftwf_init_threads();
+  if (not fftwf_init_threads())
+    throw std::runtime_error("Failed to initialize FFTW threads");
+
 #ifdef ENABLE_IPP
   ippInit();
-  ippSetNumThreads(1);
   const auto libVersion = ippGetLibVersion();
   fmt::print("IPP version: {} {}\n", libVersion->Name, libVersion->Version);
 #endif
