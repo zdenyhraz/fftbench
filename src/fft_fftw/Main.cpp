@@ -5,9 +5,9 @@
 int main(int argc, char** argv)
 try
 {
-  const auto size = 1024;
-  const auto flag = FFTW_ESTIMATE;
+  const auto size = 1 << 24;
   const auto nthreads = 1;
+  const auto flag = FFTW_ESTIMATE;
 
   if (not fftwf_init_threads())
     throw std::runtime_error("Failed to initialize FFTW threads");

@@ -6,3 +6,4 @@ libs/fftw
 libs/intel
 data/fftbench.csv
 data/fftbench.png
+*massif.out.*
