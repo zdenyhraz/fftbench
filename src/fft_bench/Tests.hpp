@@ -74,7 +74,6 @@ std::vector<f32> OpenCVTest(std::vector<f32> input)
 }
 #endif
 
-#ifdef ENABLE_IPP
 std::vector<f32> IPPTest(std::vector<f32> input, IppHintAlgorithm hint)
 {
   const int N = input.size();
@@ -104,7 +103,6 @@ std::vector<f32> IPPTest(std::vector<f32> input, IppHintAlgorithm hint)
 
   return output;
 }
-#endif
 
 void PrintFFT(const std::vector<f32>& fft, const std::string& prefix, const std::string& suffix)
 {
@@ -162,16 +160,19 @@ void RunTests(usize size)
   CheckEqual("FFTW estimate", fftref, FFTWTest(input, FFTW_ESTIMATE));
   CheckEqual("FFTW measure", fftref, FFTWTest(input, FFTW_MEASURE));
   CheckEqual("FFTW patient", fftref, FFTWTest(input, FFTW_PATIENT));
+
+  CheckEqual("IPP accurate", fftref, IPPTest(input, ippAlgHintAccurate));
+  CheckEqual("IPP fast", fftref, IPPTest(input, ippAlgHintFast));
+
   CheckEqual("PocketFFT", fftref, PocketFFTTest(input));
+
   CheckEqual("PFFFT", fftref, PFFFTTest(input));
+
 #ifdef ENABLE_KFR
   CheckEqual("KFR", fftref, KFRTest(input));
 #endif
+
 #ifdef ENABLE_OPENCV
   CheckEqual("OpenCV", fftref, OpenCVTest(input));
-#endif
-#ifdef ENABLE_IPP
-  CheckEqual("IPP accurate", fftref, IPPTest(input, ippAlgHintAccurate));
-  CheckEqual("IPP fast", fftref, IPPTest(input, ippAlgHintFast));
 #endif
 }

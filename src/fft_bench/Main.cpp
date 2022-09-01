@@ -6,11 +6,9 @@ static void Init()
   if (not fftwf_init_threads())
     throw std::runtime_error("Failed to initialize FFTW threads");
 
-#ifdef ENABLE_IPP
   ippInit();
   const auto libVersion = ippGetLibVersion();
   fmt::print("IPP version: {} {}\n", libVersion->Name, libVersion->Version);
-#endif
 }
 
 // --benchmark_out_format={json|console|csv}

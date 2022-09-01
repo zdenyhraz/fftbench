@@ -76,7 +76,6 @@ static void OpenCVBenchmark(benchmark::State& state, std::vector<f32> input)
 }
 #endif
 
-#ifdef ENABLE_IPP
 static void IPPBenchmark(benchmark::State& state, std::vector<f32> input, IppHintAlgorithm hint, int nthreads)
 {
   ippSetNumThreads(nthreads);
@@ -104,7 +103,6 @@ static void IPPBenchmark(benchmark::State& state, std::vector<f32> input, IppHin
   ippFree(pSrc);
   ippFree(pDst);
 }
-#endif
 
 void RegisterBenchmarks()
 {
@@ -126,19 +124,22 @@ void RegisterBenchmarks()
     benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW_PATIENT 2 threads", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 2)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW_PATIENT 3 threads", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 3)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | FFTW_PATIENT 4 threads", size).c_str(), FFTWBenchmark, input, FFTW_PATIENT, 4)->Unit(timeunit);
-    // benchmark::RegisterBenchmark(fmt::format("{:>8} | PocketFFT", size).c_str(), PocketFFTBenchmark, input)->Unit(timeunit);
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | PFFFT", size).c_str(), PFFFTBenchmark, input)->Unit(timeunit);
-#ifdef ENABLE_KFR
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | KFR", size).c_str(), KFRBenchmark, input)->Unit(timeunit);
-#endif
-#ifdef ENABLE_OPENCV
-    benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit);
-#endif
-#ifdef ENABLE_IPP
+
     benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP 1 thread", size).c_str(), IPPBenchmark, input, ippAlgHintFast, 1)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP 2 threads", size).c_str(), IPPBenchmark, input, ippAlgHintFast, 2)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP 3 threads", size).c_str(), IPPBenchmark, input, ippAlgHintFast, 3)->Unit(timeunit);
     benchmark::RegisterBenchmark(fmt::format("{:>8} | IPP 4 threads", size).c_str(), IPPBenchmark, input, ippAlgHintFast, 4)->Unit(timeunit);
+
+    // benchmark::RegisterBenchmark(fmt::format("{:>8} | PocketFFT", size).c_str(), PocketFFTBenchmark, input)->Unit(timeunit);
+
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | PFFFT", size).c_str(), PFFFTBenchmark, input)->Unit(timeunit);
+
+#ifdef ENABLE_KFR
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | KFR", size).c_str(), KFRBenchmark, input)->Unit(timeunit);
+#endif
+
+#ifdef ENABLE_OPENCV
+    benchmark::RegisterBenchmark(fmt::format("{:>8} | OpenCV", size).c_str(), OpenCVBenchmark, input)->Unit(timeunit);
 #endif
   }
 }

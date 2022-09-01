@@ -7,6 +7,7 @@
 #include <fmt/format.h>
 #include <benchmark/benchmark.h>
 #include <fftw/api/fftw3.h>
+#include <ipp.h>
 #include <pocketfft/pocketfft_hdronly.h>
 #include <pffft/pffft.hpp>
 
@@ -17,10 +18,6 @@
 
 #ifdef ENABLE_OPENCV
   #include <opencv2/opencv.hpp>
-#endif
-
-#ifdef ENABLE_IPP
-  #include "ipp.h"
 #endif
 
 using i8 = int8_t;
