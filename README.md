@@ -11,5 +11,5 @@
 
 
 <p align="center">
-  <img src="data/fftbench_example.png" width="100%">
+  <img src="data/atom/fftbench.png" width="100%">
 </p>
