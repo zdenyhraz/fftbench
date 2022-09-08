@@ -8,7 +8,7 @@
 int main(int argc, char** argv)
 try
 {
-  const auto size = 1 << 24;
+  const auto size = 1 << 20;
   const auto nthreads = 1;
   const auto flag = FFTW_MEASURE;
   const auto path = std::filesystem::current_path().parent_path() / fmt::format("data/wisdom_{}.fftw", size);
@@ -21,7 +21,7 @@ try
   fftwf_complex* outputAligned = fftwf_alloc_complex(size / 2 + 1);
 
   {
-    TIMER("Create plan and export wisdom");
+    TIMER(fmt::format("Create {} plan and export wisdom", size));
     fftwf_plan plan = fftwf_plan_dft_r2c_1d(size, inputAligned, outputAligned, flag);
     if (not fftwf_export_wisdom_to_filename(path.c_str()))
       throw std::runtime_error("Failed to export FFTW wisdom");
@@ -31,7 +31,7 @@ try
   fftwf_forget_wisdom();
 
   {
-    TIMER("Import wisdom and create plan");
+    TIMER(fmt::format("Import wisdom and create {} plan", size));
     if (not fftwf_import_wisdom_from_filename(path.c_str()))
       throw std::runtime_error("Failed to import FFTW wisdom");
     fftwf_plan plan = fftwf_plan_dft_r2c_1d(size, inputAligned, outputAligned, flag);
